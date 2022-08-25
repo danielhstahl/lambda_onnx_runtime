@@ -1,0 +1,1 @@
+{"pclass": "int64", "sex": "string", "age": "float32", "fare": "float32", "embarked": "string"}
