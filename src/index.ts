@@ -2,17 +2,23 @@
 // Licensed under the MIT license.
 const ort = require('onnxruntime-node')
 import schema from '../schema.json'
-//const ort = require();
-//const schema = require('./schema.json')
 
+const BIGINTKEY = "int64"
 interface Dictionary<T> {
     [Key: string]: T;
 }
+
 //this converts [{key:value}] into {key:[value]}
-export const transposeRows = (arr: Dictionary<any>[], keys: string[]) => {
+export const transposeRows = (schema: Dictionary<any>, arr: Dictionary<any>[], keys: string[]) => {
     return arr.reduce((aggr, row) => {
         for (const key of keys) {
-            aggr[key].push(row[key])
+            if (schema[key] === BIGINTKEY) {
+                aggr[key].push(BigInt(row[key]))
+            }
+            else {
+                aggr[key].push(row[key])
+            }
+
         }
         return aggr
     }, keys.reduce((aggr, key) => ({
@@ -22,7 +28,7 @@ export const transposeRows = (arr: Dictionary<any>[], keys: string[]) => {
 }
 export const parseSchema = (schema: Dictionary<any>, arr: Dictionary<any>[]) => {
     const keys = Object.keys(schema)
-    const transposedRows = transposeRows(arr, keys)
+    const transposedRows = transposeRows(schema, arr, keys)
     const n = arr.length
     return keys.reduce((aggr, key) => {
         return { ...aggr, [key]: new ort.Tensor(schema[key], transposedRows[key], [n, 1]) }
@@ -53,7 +59,7 @@ export const parseOutput = (results: ModelOutput) => {
     const numLabels = results.label.dims[0]
     const parsedResults: Predictions[] = []
     results.label.data.forEach((v, index) => {
-        const value = results.label.type === 'int64' ? parseInt(v.toString()) : v
+        const value = results.label.type === BIGINTKEY ? parseInt(v.toString()) : v
         let maxProbability = 0
         for (let i = index * numLabels; i < (index + 1) * numLabels; ++i) {
             if (maxProbability < results.probabilities.data[i]) {
@@ -89,14 +95,14 @@ async function main() {
             age: 20.0,
             fare: 3.5,
             embarked: "S",
-            pclass: BigInt(1)
+            pclass: 1
         },
         {
             sex: "male",
             age: 25.0,
             fare: 6.0,
             embarked: "S",
-            pclass: BigInt(2)
+            pclass: 2
         }])
 
         const results = await session.run(feeds);
