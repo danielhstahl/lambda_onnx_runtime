@@ -55,19 +55,25 @@ interface Predictions {
     value: any,
     probability: number
 }
+
+const getMaxNumber = (arr: Float32Array) => {
+    let maxElem = Number.MIN_VALUE
+    for (const v of arr) {
+        if (v > maxElem) {
+            maxElem = v
+        }
+    }
+    return maxElem
+}
 export const parseOutput = (results: ModelOutput) => {
-    const numLabels = results.label.dims[0]
+    const numLabels = results.probabilities.dims[1]
     const parsedResults: Predictions[] = []
+    console.log(results)
     results.label.data.forEach((v, index) => {
         const value = results.label.type === BIGINTKEY ? parseInt(v.toString()) : v
-        let maxProbability = 0
-        for (let i = index * numLabels; i < (index + 1) * numLabels; ++i) {
-            if (maxProbability < results.probabilities.data[i]) {
-                maxProbability = results.probabilities.data[i]
-            }
-        }
+        const probability = getMaxNumber(results.probabilities.data.slice(index * numLabels, (index + 1) * numLabels))
         const result = {
-            value, probability: maxProbability
+            value, probability
         }
         parsedResults.push(result)
     })
@@ -80,9 +86,6 @@ exports.handler = async function (event: any, context: any) {
     const feeds = parseSchema(schema, event.body)
     const results = await session.run(feeds);
     return parseOutput(results)
-    //console.log("EVENT: \n" + JSON.stringify(event, null, 2))
-    //return context.logStreamName
-    //event
 }
 
 // use an async context to call onnxruntime functions.
@@ -96,6 +99,13 @@ async function main() {
             fare: 3.5,
             embarked: "S",
             pclass: 1
+        },
+        {
+            sex: "male",
+            age: 25.0,
+            fare: 6.0,
+            embarked: "S",
+            pclass: 2
         },
         {
             sex: "male",

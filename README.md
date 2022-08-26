@@ -16,13 +16,17 @@ With onnx, just easier to use conda...at least on a mac
 `npm ci`
 `npm run start`
 
-## building TS
+## building/transpiling to JS
 
 `npm run build`
 
 
 ## testing lambda
 
-`docker run -d -v ~/.aws-lambda-rie:/aws-lambda -p 9000:8080 \
-  --entrypoint /aws-lambda/aws-lambda-rie hello-world:latest <image entrypoint> \
-      <(optional) image command>`
+`docker build . -t testonnx`
+
+`docker run -p 9000:8080 testonnx`
+
+In a new terminal,
+
+`curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d "{\"body\":[{\"sex\":\"female\", \"age\":20.0, \"fare\":3.5, \"embarked\":\"S\", \"pclass\":1}]}"`
