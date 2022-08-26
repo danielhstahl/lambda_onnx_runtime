@@ -1,3 +1,9 @@
+## Helpful links
+
+* https://onnx.ai/sklearn-onnx/auto_examples/plot_complex_pipeline.html
+* http://onnx.ai/sklearn-onnx/pipeline.html
+* https://onnx.ai/sklearn-onnx/auto_examples/plot_pipeline_xgboost.html
+
 ## Training a model
 
 With onnx, just easier to use conda...at least on a mac
