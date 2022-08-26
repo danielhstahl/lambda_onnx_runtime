@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
 const ort = require('onnxruntime-node')
 import schema from '../schema.json'
 
@@ -82,6 +80,7 @@ export const parseOutput = (results: ModelOutput) => {
 
 
 exports.handler = async function (event: any, context: any) {
+    //TODO, make this an environment variable OR force the same model name during docker build
     const session = await ort.InferenceSession.create('./pipeline_titanic.onnx');
     const feeds = parseSchema(schema, event.body)
     const results = await session.run(feeds);
